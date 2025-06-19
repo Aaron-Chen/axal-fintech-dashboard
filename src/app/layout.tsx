@@ -36,6 +36,31 @@ export default function RootLayout({
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const pathname = usePathname();
 
+  // Listen for wallet modal events from page component
+  useEffect(() => {
+    const handleOpenWalletModal = () => setIsWalletModalOpen(true);
+    window.addEventListener('open-wallet-modal', handleOpenWalletModal);
+    return () => window.removeEventListener('open-wallet-modal', handleOpenWalletModal);
+  }, []);
+
+  // Emit wallet state changes to page component
+  useEffect(() => {
+    if (isWalletConnected) {
+      window.dispatchEvent(new CustomEvent('wallet-connected'));
+    } else {
+      window.dispatchEvent(new CustomEvent('wallet-disconnected'));
+    }
+  }, [isWalletConnected]);
+
+  // Emit loading video state changes
+  useEffect(() => {
+    if (showLoadingVideo) {
+      window.dispatchEvent(new CustomEvent('loading-video-start'));
+    } else {
+      window.dispatchEvent(new CustomEvent('loading-video-end'));
+    }
+  }, [showLoadingVideo]);
+
   // Debug: Log wallet connection state every 2 seconds
   useEffect(() => {
     const interval = setInterval(() => {
@@ -189,11 +214,7 @@ export default function RootLayout({
                 </div>
               )}
               {pathname === '/' ? (
-                <DashboardPage 
-                  onWalletModalOpen={() => setIsWalletModalOpen(true)}
-                  showLoadingVideo={showLoadingVideo}
-                  isWalletConnected={isWalletConnected}
-                />
+                <DashboardPage />
               ) : (
                 children
               )}

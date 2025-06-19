@@ -4,17 +4,33 @@ import { MdCalendarToday, MdTrendingUp, MdAccountBalance, MdBarChart, MdSearch, 
 import Image from "next/image";
 import { useState, useEffect } from "react";
 
-interface DashboardPageProps {
-  onWalletModalOpen?: () => void;
-  showLoadingVideo?: boolean;
-  isWalletConnected?: boolean;
+// Custom hook to communicate with layout
+function useWalletConnection() {
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
+
+  useEffect(() => {
+    // Listen for wallet connection events from layout
+    const handleWalletConnected = () => setIsWalletConnected(true);
+    const handleWalletDisconnected = () => setIsWalletConnected(false);
+
+    window.addEventListener('wallet-connected', handleWalletConnected);
+    window.addEventListener('wallet-disconnected', handleWalletDisconnected);
+
+    return () => {
+      window.removeEventListener('wallet-connected', handleWalletConnected);
+      window.removeEventListener('wallet-disconnected', handleWalletDisconnected);
+    };
+  }, []);
+
+  const openWalletModal = () => {
+    window.dispatchEvent(new CustomEvent('open-wallet-modal'));
+  };
+
+  return { isWalletConnected, openWalletModal };
 }
 
-export default function DashboardPage({ 
-  onWalletModalOpen,
-  showLoadingVideo = false,
-  isWalletConnected = false
-}: DashboardPageProps = {}) {
+export default function DashboardPage() {
+  const { isWalletConnected, openWalletModal } = useWalletConnection();
   const [balance, setBalance] = useState(8992.98);
   const [performanceTab, setPerformanceTab] = useState("Performance");
   const [strategiesTab, setStrategiesTab] = useState("Strategies");
@@ -263,7 +279,7 @@ export default function DashboardPage({
               priority
             />
             <button
-              onClick={onWalletModalOpen}
+              onClick={openWalletModal}
               className="flex items-center gap-4 px-8 py-4 rounded-[20px] bg-white/10 border border-white/20 backdrop-blur-md text-white font-semibold text-xl shadow-lg hover:bg-white/20 transition pointer-events-auto mb-4"
               style={{ fontFamily: 'Jura, sans-serif' }}
             >
@@ -417,7 +433,7 @@ export default function DashboardPage({
                 </div>
 
                 <button
-                  onClick={onWalletModalOpen}
+                  onClick={openWalletModal}
                   className="flex items-center gap-4 px-8 py-4 rounded-[20px] bg-white/10 border border-white/20 backdrop-blur-md text-white font-semibold text-xl shadow-lg hover:bg-white/20 transition pointer-events-auto"
                   style={{ fontFamily: 'Jura, sans-serif' }}
                 >
@@ -478,7 +494,7 @@ export default function DashboardPage({
                 </div>
 
                 <button
-                  onClick={onWalletModalOpen}
+                  onClick={openWalletModal}
                   className="flex items-center gap-4 px-8 py-4 rounded-[20px] bg-white/10 border border-white/20 backdrop-blur-md text-white font-semibold text-xl shadow-lg hover:bg-white/20 transition pointer-events-auto"
                   style={{ fontFamily: 'Jura, sans-serif' }}
                 >
